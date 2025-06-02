@@ -19,6 +19,7 @@ const formSchema = z.object({
   contact: z.string().min(5),
   bannerImage: z.any(),
   header: z.string().min(3),
+  slug: z.string().min(3),
   text: z.string().min(10),
   address: z.string().min(5),
   isActive: z.boolean(),
@@ -51,11 +52,12 @@ export default function CreatePage() {
       formData.append('mailId', data.mailId);
       formData.append('contact', data.contact);
       formData.append('header', data.header);
+      formData.append('slug', data.slug); // new field
       formData.append('text', data.text);
       formData.append('address', data.address);
       formData.append('isActive', String(data.isActive));
       formData.append('logo', data.logo[0]);
-      formData.append('bannerImage', data.bannerImage[0]); // 👈 file input
+      formData.append('bannerImage', data.bannerImage[0]);
 
       await axios.post('/pages', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -64,7 +66,7 @@ export default function CreatePage() {
       toast.success('Page created successfully');
       router.push('/dashboard/pages');
     } catch (error: unknown) {
-      //@ts-expect-error: err is unknown and may not have a response property
+      //@ts-expect-error: error may not have response
       toast.error(error?.response?.data?.message ?? 'Failed to create page');
     } finally {
       setLoading(false);
@@ -75,6 +77,7 @@ export default function CreatePage() {
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-semibold mb-4">Create New Page</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
         <div>
           <Label>Email</Label>
           <Input type="email" {...register('mailId')} />
@@ -97,6 +100,12 @@ export default function CreatePage() {
           <Label>Header</Label>
           <Input type="text" {...register('header')} />
           {errors.header && <p className="text-red-500 text-sm">{errors.header.message}</p>}
+        </div>
+
+        <div>
+          <Label>Slug</Label>
+          <Input type="text" {...register('slug')} />
+          {errors.slug && <p className="text-red-500 text-sm">{errors.slug.message}</p>}
         </div>
 
         <div>
