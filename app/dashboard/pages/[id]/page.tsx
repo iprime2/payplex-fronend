@@ -1,5 +1,5 @@
 'use client';
-
+// ./app/dashboard/pages/[id]/page.tsx
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -17,13 +17,14 @@ export default function EditPage() {
   const [formData, setFormData] = useState({
     mailId: '',
     contact: '',
-    bannerImage: '',
     header: '',
     text: '',
     address: '',
     isActive: true,
   });
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null); // New state
   const [loading, setLoading] = useState(false);
 
   const fetchPage = async () => {
@@ -34,22 +35,22 @@ export default function EditPage() {
       setFormData({
         mailId: page.mailId,
         contact: page.contact,
-        bannerImage: page.bannerImage,
         header: page.header,
         text: page.text,
         address: page.address,
         isActive: page.isActive,
       });
-
-    } catch (err) {
-      toast.error('Failed to load page data:');
+    } catch (err: unknown) {
+      //@ts-expect-error: err is unknown and may not have a response property
+      toast.error(err.response?.data?.message || 'Update failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchPage();
   }, [params.id]);
-  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const target = e.target as HTMLInputElement;
@@ -65,96 +66,109 @@ export default function EditPage() {
     setLoading(true);
 
     try {
-        const payload = new FormData();
+      const payload = new FormData();
+      const allowedFields = ['mailId', 'contact', 'header', 'text', 'address', 'isActive'];
 
-        // List of only valid Page fields
-        const allowedFields = ['mailId', 'contact', 'bannerImage', 'header', 'text', 'address', 'isActive'];
-
-        allowedFields.forEach((field) => {
+      allowedFields.forEach(field => {
         const value = formData[field as keyof typeof formData];
         if (value !== undefined && value !== null) {
-            payload.append(field, value.toString());
+          payload.append(field, value.toString());
         }
-        });
-        
-        if (logoFile) {
-          payload.append('logo', logoFile);
-        }
-        
-        // Debug properly
-        for (const [key, value] of payload.entries()) {
-          console.log(`${key}:`, value);
-        }
-        await axios.patch(`/pages/${params.id}`, payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        });
+      });
 
-        toast.success('Page updated successfully');
-        router.push('/dashboard/pages');
-    } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Update failed');
+      if (logoFile) {
+        payload.append('logo', logoFile);
+      }
+
+      if (bannerFile) {
+        payload.append('bannerImage', bannerFile);
+      }
+
+      await axios.patch(`/pages/${params.id}`, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      toast.success('Page updated successfully');
+      router.push('/dashboard/pages');
+    } catch (err: unknown) {
+      //@ts-expect-error: err is unknown and may not have a response property
+      toast.error(err.response?.data?.message || 'Update failed');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <>
-        { loading ?
-            <Loader className="py-16" />
-        :    
-            <div className="max-w-3xl mx-auto p-6">
-            <h2 className="text-xl font-semibold mb-4">Edit Page</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+      {loading ? (
+        <Loader className="py-16" />
+      ) : (
+        <div className="max-w-3xl mx-auto p-6">
+          <h2 className="text-xl font-semibold mb-4">Edit Page</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-                <Label>Email</Label>
-                <Input name="mailId" value={formData.mailId} onChange={handleChange} required />
+              <Label>Email</Label>
+              <Input name="mailId" value={formData.mailId} onChange={handleChange} required />
             </div>
-    
+
             <div>
-                <Label>Contact</Label>
-                <Input name="contact" value={formData.contact} onChange={handleChange} required />
+              <Label>Contact</Label>
+              <Input name="contact" value={formData.contact} onChange={handleChange} required />
             </div>
-    
+
             <div>
-                <Label>Banner Image URL</Label>
-                <Input name="bannerImage" value={formData.bannerImage} onChange={handleChange} />
+              <Label>Header</Label>
+              <Input name="header" value={formData.header} onChange={handleChange} />
             </div>
-    
+
             <div>
-                <Label>Header</Label>
-                <Input name="header" value={formData.header} onChange={handleChange} />
+              <Label>Description</Label>
+              <Textarea name="text" value={formData.text} onChange={handleChange} />
             </div>
-    
+
             <div>
-                <Label>Description</Label>
-                <Textarea name="text" value={formData.text} onChange={handleChange} />
+              <Label>Address</Label>
+              <Input name="address" value={formData.address} onChange={handleChange} />
             </div>
-    
+
             <div>
-                <Label>Address</Label>
-                <Input name="address" value={formData.address} onChange={handleChange} />
-            </div>
-    
-            <div>
-                <Label>Status</Label>
-                <label className="flex items-center gap-2">
-                <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleChange} />
+              <Label>Status</Label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isActive"
+                  checked={formData.isActive}
+                  onChange={handleChange}
+                />
                 Active
-                </label>
+              </label>
             </div>
-    
+
             <div>
-                <Label>Upload New Logo (optional)</Label>
-                <Input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] || null)} />
+              <Label>Upload New Logo (optional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={e => setLogoFile(e.target.files?.[0] || null)}
+              />
             </div>
-    
-            <Button type="submit" disabled={loading}>
-                {loading && <Loader2 />}'Update Page'
+
+            <div>
+              <Label>Upload New Banner Image (optional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={e => setBannerFile(e.target.files?.[0] || null)}
+              />
+            </div>
+
+            <Button type="submit" disabled={loading} className="flex items-center gap-2">
+              {loading && <Loader2 className="animate-spin h-4 w-4" />}
+              Update Page
             </Button>
-            </form>
+          </form>
         </div>
-        }
+      )}
     </>
   );
 }

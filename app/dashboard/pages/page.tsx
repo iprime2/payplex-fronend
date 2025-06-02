@@ -1,5 +1,5 @@
 'use client';
-
+// ./app/dashboard/pages/page.tsx
 import { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,6 @@ type Page = {
   isActive: boolean;
 };
 
-const fetcher = (url: string) => axios.get(url).then(res => res.data.data);
 
 export default function PageList() {
   const [pages, setPages] = useState<Page[]>([]);
@@ -54,7 +53,7 @@ export default function PageList() {
       setDeleteId(null);
     } catch (error) {
       console.log(error);
-      // @ts-ignore
+      // @ts-expect-error: err is unknown and may not have a response property
       toast.error(error?.response?.data?.message ?? 'Failed to delete page');
     } finally {
       setLoading(false);
@@ -70,7 +69,7 @@ export default function PageList() {
       toast.success(`Page ${newStatus ? 'activated' : 'deactivated'}`);
       fetchPages(); 
     } catch (error) {
-      //@ts-ignore
+      //@ts-expect-error: err is unknown and may not have a response property
       toast.error(error?.response?.data?.message ?? 'Failed to delete page');
     } finally {
       setUpdatingPageId(null);
@@ -78,8 +77,8 @@ export default function PageList() {
   };
   
   useEffect(() => {
-        fetchPages();
-    }, []);
+    fetchPages();
+  }, []);
     
   return (
     <>

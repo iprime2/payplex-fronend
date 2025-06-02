@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 const formSchema = z.object({
   mailId: z.string().email(),
   contact: z.string().min(5),
-  bannerImage: z.string().url(),
+  bannerImage: z.any(),
   header: z.string().min(3),
   text: z.string().min(10),
   address: z.string().min(5),
@@ -50,21 +50,22 @@ export default function CreatePage() {
       const formData = new FormData();
       formData.append('mailId', data.mailId);
       formData.append('contact', data.contact);
-      formData.append('bannerImage', data.bannerImage);
       formData.append('header', data.header);
       formData.append('text', data.text);
       formData.append('address', data.address);
       formData.append('isActive', String(data.isActive));
-      formData.append('logo', data.logo[0]); 
+      formData.append('logo', data.logo[0]);
+      formData.append('bannerImage', data.bannerImage[0]); // 👈 file input
 
       await axios.post('/pages', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
+      toast.success('Page created successfully');
       router.push('/dashboard/pages');
-    } catch (error: any) {
-      //@ts-ignore
-      toast.error(error?.response?.data?.message ?? 'Failed to delete page');
+    } catch (error: unknown) {
+      //@ts-expect-error: err is unknown and may not have a response property
+      toast.error(error?.response?.data?.message ?? 'Failed to create page');
     } finally {
       setLoading(false);
     }
@@ -87,9 +88,9 @@ export default function CreatePage() {
         </div>
 
         <div>
-          <Label>Banner Image URL</Label>
-          <Input type="text" {...register('bannerImage')} />
-          {errors.bannerImage && <p className="text-red-500 text-sm">{errors.bannerImage.message}</p>}
+          <Label>Banner Image</Label>
+          <Input type="file" accept="image/*" {...register('bannerImage')} />
+          {errors.bannerImage && <p className="text-red-500 text-sm">{errors.bannerImage.message as string}</p>}
         </div>
 
         <div>
@@ -124,8 +125,9 @@ export default function CreatePage() {
           />
         </div>
 
-        <Button type="submit" disabled={loading}>
-          {loading && <Loader2 />} 'Create Page'
+        <Button type="submit" disabled={loading} className="flex items-center gap-2">
+          {loading && <Loader2 className="animate-spin h-4 w-4" />}
+          Create Page
         </Button>
       </form>
     </div>

@@ -35,7 +35,8 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      //@ts-expect-error: err is unknown and may not have a response property
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);

@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export default function Navbar({ showUser = false }: { showUser?: boolean }) {
-  const { email, logout } = useAuth();
+  const { email } = useAuth();
   const router = useRouter();
 
   const logoutBtn = () => {
