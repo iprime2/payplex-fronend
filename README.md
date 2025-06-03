@@ -7,9 +7,8 @@ This is the frontend for the Payplex Admin/User system, built using **Next.js 15
 ## 🌐 Production Deployment
 
 The application is deployed at:
-- Backend: https://payplex-backend.onrender.com/api
-- Swagger: https://payplex-backend.onrender.com/api-docs/
-
+- Frontend: https://payplex-fronend.vercel.app/
+  
 ---
 
 ## 🚀 Requirements
